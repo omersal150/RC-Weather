@@ -12,6 +12,7 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
+      - MONGO_URI=mongodb://mongo:27017/RC-Weather-DB  # Ensure the app uses the correct Mongo URI
 
   mongo:
     image: mongo:latest

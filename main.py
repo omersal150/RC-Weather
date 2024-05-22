@@ -3,18 +3,27 @@ from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = "337234"
-app.config["MONGO_URI"] = "mongodb://mongo:27017/RC-Weather-DB"
+app.config["MONGO_URI"] = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/RC-Weather-DB')
 mongo = PyMongo(app)
+
+# Define a mapping of RC fields to station IDs
+rc_field_station_mapping = {
+    'Field1': 2049,  # Replace with actual station IDs
+    'Field2': 2049,
+    'Field3': 757,
+    'Field4': 1164331
+}
 
 # Function to fetch weather data from Windguru API
 def fetch_weather_data(uid, password, station):
     url = "https://www.windguru.cz/int/wgsapi.php"
     params = {
-        'uid': uid,
-        'password': password,
+        'uid': 3372,
+        'password': 3372,
         'q': 'station_data_current',
         'format': 'json',
         'station': station  # Specify the station ID
@@ -41,7 +50,18 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        pass
+        email = request.form.get('email')
+        password = request.form.get('password')
+        hashed_password = generate_password_hash(password, method='sha256')
+
+        user = {
+            'email': email,
+            'password': hashed_password
+        }
+
+        mongo.db.users.insert_one(user)
+        flash('Registration successful! You can now log in.', 'success')
+        return redirect(url_for('login'))
     else:
         return render_template('register.html')
 
@@ -71,7 +91,7 @@ def logout():
 def check_weather():
     if request.method == 'GET':
         # Handle GET request
-        return render_template('check-weather.html')  # Render the form template for checking weather
+        return render_template('check-weather.html')  # Render form template for checking weather
     elif request.method == 'POST':
         # Handle POST request
         if 'username' not in session:
@@ -80,33 +100,44 @@ def check_weather():
         # Fetch weather data from Windguru API
         uid = 3372  # Your Windguru UID
         password = 3372  # Your Windguru password
-        station = 2049  # Specify the Windguru station ID
+        rc_field = request.form.get('rc-field')
+        station = rc_field_station_mapping.get(rc_field)  # Get the station ID based on the RC field
+
         weather_data = fetch_weather_data(uid, password, station)
 
         if weather_data:
-            # Process weather data and store in MongoDB
-            # Your code to process weather data and store in MongoDB goes here
+            date_time_str = request.form.get('datetime')
+            if date_time_str:
+                date_time = datetime.strptime(date_time_str, '%Y-%m-%dT%H:%M')
 
-            # Redirect to the weather result page
-            return redirect(url_for('check_weather_result'))
+                # Store weather check information in MongoDB
+                weather_check = {
+                    'username': session['username'],
+                    'date_time': date_time,
+                    'rc_field': rc_field,
+                    'rc_model': request.form.get('rc-model'),
+                    'wind_speed': weather_data['station_data']['LAST']['wind_avg'] if 'station_data' in weather_data and 'LAST' in weather_data['station_data'] else 0,
+                    'wind_direction': weather_data['station_data']['LAST']['wind_direction'] if 'station_data' in weather_data and 'LAST' in weather_data['station_data'] else 0,
+                    'result': 'Weather data fetched successfully'
+                }
+                mongo.db.UserLogs.insert_one(weather_check)
+
+                # Render template with weather check result
+                return render_template('check_weather_result.html', weather_data=weather_check)
+            else:
+                flash('Date and time are required.', 'error')
+                return redirect(url_for('check_weather'))
         else:
             flash('Failed to fetch weather data from Windguru API.', 'error')
-            return redirect(url_for('check-weather'))  # Redirect back to the weather form
+            return redirect(url_for('check_weather'))
     else:
         # Handle other HTTP methods
         return 'Method Not Allowed', 405
-    
-@app.route('/check-weather-result')
-def check_weather_result():
-    # Placeholder data for demonstration purposes
-    weather_data = {
-        'datetime': '2024-05-28 12:00',
-        'temperature': 25,
-        'humidity': 60,
-        'wind_speed': 10,
-        'wind_direction': 'N'
-    }
-    return render_template('check_weather_result.html', weather_data=weather_data)
+
+@app.route('/past_weather')
+def past_weather():
+    # Your logic for handling past weather data goes here
+    return 'Past Weather Data'
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

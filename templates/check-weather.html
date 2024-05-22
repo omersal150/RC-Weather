@@ -1,13 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Weather</title>
+</head>
 <body>
     <div class="container">
         <h1>Check Weather</h1>
-        <form method="POST">
+        <form method="POST" action="/check-weather">
             <label for="rc-field">RC Field:</label>
             <select id="rc-field" name="rc-field" required>
                 <option value="">Select RC Field</option>
                 <option value="Field1">Kfar Galim</option>
                 <option value="Field2">Kfar Byalik</option>
-                <option value="Field3">Eliaz</option>
+                <option value="Field3">Shomrat</option>
+                <option value="Field4">Eliaz</option>
             </select>
 
             <label for="rc-model">RC Model:</label>
@@ -26,3 +34,4 @@
         <a href="/home">Go Back to Home</a>
     </div>
 </body>
+</html>

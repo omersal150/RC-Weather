@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Result</title>
+    <title>Weather Check Result</title>
 </head>
 <body>
-    <h1>Weather Result</h1>
-    <p>Date and Time: {{ weather_data.datetime }}</p>
-    <p>Temperature: {{ weather_data.temperature }}</p>
-    <p>Humidity: {{ weather_data.humidity }}</p>
-    <p>Wind Speed: {{ weather_data.wind_speed }}</p>
-    <p>Wind Direction: {{ weather_data.wind_direction }}</p>
+    <h1>Weather Check Result</h1>
+    <p>Date and Time: {{ weather_data.date_time }}</p>
+    <p>RC Field: {{ weather_data.rc_field }}</p>
+    <p>RC Model: {{ weather_data.rc_model }}</p>
+    <p>Wind Speed: {{ weather_data.wind_speed }} km/h</p>
+    <p>Wind Direction: {{ weather_data.wind_direction }}°</p>
+    <p>Result: {{ weather_data.result }}</p>
 </body>
 </html>
