@@ -7,11 +7,11 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-    environment:
-      - FLASK_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/myDatabase
     depends_on:
       - mongo
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
 
   mongo:
     image: mongo:latest
